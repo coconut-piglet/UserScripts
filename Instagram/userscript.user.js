@@ -13,4 +13,15 @@
 
 (function () {
   "use strict";
+
+  const STORIES_REEL_SEEN =
+    "https://www.instagram.com/api/v1/stories/reel/seen";
+
+  const actualOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function () {
+    if (arguments[1] === STORIES_REEL_SEEN) {
+      this.send = this.abort;
+    }
+    return actualOpen.apply(this, arguments);
+  };
 })();
