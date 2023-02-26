@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Coconut Instagram
 // @author       Coconut Piglet
-// @version      0.1.1
+// @version      0.1.2
 // @description  Make Instagram great again.
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=instagram.com
 // @namespace    https://instagram.com/
@@ -20,7 +20,8 @@
     /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/timeline\/$/g;
   const USER_POSTS_REGEX =
     /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/user\/.*\/username\/.*/g;
-  // TODO: Exclude https://www.instagram.com/api/v1/users/xxx/info/ from `POST_DETAILS_REGEX`.
+  const USER_POSTS_PREVIEW_REGEX =
+    /^https:\/\/www\.instagram\.com\/api\/v1\/users\/.*\/info\/$/g;
   const POST_DETAILS_REGEX =
     /^https:\/\/www\.instagram\.com\/api\/v1\/.*\/info\/$/g;
 
@@ -46,7 +47,10 @@
   }
 
   function isPostDetailsURL(url) {
-    return url.match(POST_DETAILS_REGEX) !== null;
+    return (
+      url.match(POST_DETAILS_REGEX) !== null &&
+      url.match(USER_POSTS_PREVIEW_REGEX) === null
+    );
   }
 
   const actualOpen = XMLHttpRequest.prototype.open;
