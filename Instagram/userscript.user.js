@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Coconut Instagram
 // @author       Coconut Piglet
-// @version      0.1.2
+// @version      0.1.3
 // @description  Make Instagram great again.
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=instagram.com
 // @namespace    https://instagram.com/
@@ -18,8 +18,10 @@
     /^https:\/\/www\.instagram\.com\/api\/v1\/stories\/reel\/seen$/g;
   const TIMELINE_REGEX =
     /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/timeline\/$/g;
-  const USER_POSTS_REGEX =
-    /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/user\/.*\/username\/.*/g;
+  const USER_POSTS_INITIAL_REGEX =
+    /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/user\/.*\/username\/\?count=.*/g;
+  const USER_POSTS_SUBSEQUENT_REGEX =
+    /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/user\/.*\/\?count=.*&max_id=.*/g;
   const USER_POSTS_PREVIEW_REGEX =
     /^https:\/\/www\.instagram\.com\/api\/v1\/users\/.*\/info\/$/g;
   const POST_DETAILS_REGEX =
@@ -43,7 +45,10 @@
   }
 
   function isUserPostsURL(url) {
-    return url.match(USER_POSTS_REGEX) !== null;
+    return (
+      url.match(USER_POSTS_INITIAL_REGEX) !== null ||
+      url.match(USER_POSTS_SUBSEQUENT_REGEX)
+    );
   }
 
   function isPostDetailsURL(url) {
@@ -87,7 +92,22 @@
   }
 
   function onUserPostsLoaded(payload) {
-    // TODO: Implement user posts payload handling.
+    let data = null;
+    try {
+      data = JSON.parse(payload);
+    } catch (_) {}
+    if (!data) {
+      log(`Failed to parse payload of user posts: ${payload}`);
+      return;
+    }
+    const items = data["items"];
+    if (!Array.isArray(items)) {
+      log(`Failed to find items in user posts payload: ${payload}`);
+      return;
+    }
+    for (const item of items) {
+      parseItem(item);
+    }
   }
 
   function onPostDetailsLoaded(payload) {
