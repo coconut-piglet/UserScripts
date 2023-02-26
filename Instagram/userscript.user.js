@@ -14,17 +14,17 @@
 (function () {
   "use strict";
 
-  const STORIES_REEL_SEEN =
-    "https://www.instagram.com/api/v1/stories/reel/seen";
+  const STORY_SEEN_REGEX =
+    /^https:\/\/www\.instagram\.com\/api\/v1\/stories\/reel\/seen$/g;
   const TIMELINE_REGEX =
-    /^https:\/\/www.instagram.com\/api\/v1\/feed\/timeline\/$/g;
+    /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/timeline\/$/g;
   const USER_POSTS_REGEX =
-    /^https:\/\/www.instagram.com\/api\/v1\/feed\/user\/.*\/username\/.*/g;
+    /^https:\/\/www\.instagram\.com\/api\/v1\/feed\/user\/.*\/username\/.*/g;
   const POST_DETAILS_REGEX =
-    /^https:\/\/www.instagram.com\/api\/v1\/.*\/info\/$/g;
+    /^https:\/\/www\.instagram\.com\/api\/v1\/.*\/info\/$/g;
 
   function isStoriesReelSeenURL(url) {
-    return url === STORIES_REEL_SEEN;
+    return url.match(STORY_SEEN_REGEX) !== null;
   }
   function isTimelineURL(url) {
     return url.match(TIMELINE_REGEX) !== null;
@@ -41,17 +41,19 @@
   const actualOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function () {
     const requestURL = arguments[1];
-    if (isStoriesReelSeenURL(requestURL)) {
-      this.send = this.abort;
-    }
-    if (isTimelineURL(requestURL)) {
-      this.addEventListener("load", onTimelineLoaded.bind(this));
-    }
-    if (isUserPostsURL(requestURL)) {
-      this.addEventListener("load", onUserPostsLoaded.bind(this));
-    }
-    if (isPostDetailsURL(requestURL)) {
-      this.addEventListener("load", onPostDetailsLoaded.bind(this));
+    if (requestURL) {
+      if (isStoriesReelSeenURL(requestURL)) {
+        this.send = this.abort;
+      }
+      if (isTimelineURL(requestURL)) {
+        this.addEventListener("load", onTimelineLoaded.bind(this));
+      }
+      if (isUserPostsURL(requestURL)) {
+        this.addEventListener("load", onUserPostsLoaded.bind(this));
+      }
+      if (isPostDetailsURL(requestURL)) {
+        this.addEventListener("load", onPostDetailsLoaded.bind(this));
+      }
     }
     return actualOpen.apply(this, arguments);
   };
